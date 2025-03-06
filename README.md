@@ -1,10 +1,10 @@
-🎨 Color Palette Extractor
+# 🎨 Color Palette Extractor
 
 Color Palette Extractor is a simple and fun web application that allows users to discover the top colors in any uploaded image.
 Built with Python and NiceGUI, making it extremely easy to use. 🚀
 
 
-✨ Features
+## ✨ Features
 
 ✅ 🖼️ Select & Drag and Drop Images – Just upload your image, no fuss!
 
@@ -21,19 +21,22 @@ Built with Python and NiceGUI, making it extremely easy to use. 🚀
 
 
 
-🛠️ Tools & Technologies
+## 🛠️ Technologies Used
 
-•	Python 3.8+ – The core of the application.
+
+
+•	**Python 3.8+ – The core of the application.**
  
-•	NiceGUI – For a user-friendly and modern UI.
+•	**NiceGUI – For a user-friendly and modern UI.**
  
-•	Pillow (PIL) – Handles image processing.
+•	**Pillow (PIL) – Handles image processing.**
 
-•	ColorThief – Extracts dominant colors from images.
+•	**ColorThief – Extracts dominant colors from images.**
 
-•	HTML/CSS – Adds styling and animations for a polished look.
+•	**HTML/CSS – Adds styling and animations for a polished look.**
 
-📦 Installation
+## 📦 Installation
+
 
 To set up the application, install the following dependencies:
 
