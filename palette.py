@@ -2,16 +2,20 @@ from nicegui import ui
 from PIL import Image
 from colorthief import ColorThief
 import io
+import base64
 
 PORT = 8081  # or any other port number you prefer
 
 def extract_colors(image_bytes):
     """Extracts dominant colors from an image."""
-    img = Image.open(io.BytesIO(image_bytes))
-    color_thief = ColorThief(io.BytesIO(image_bytes))
-    palette = color_thief.get_palette(color_count=5)  # Get top 5 colors
-    hex_colors = ['#%02x%02x%02x' % color for color in palette]
-    return hex_colors
+    try:
+        color_thief = ColorThief(image_bytes)
+        palette = color_thief.get_palette(color_count=5)
+        hex_colors = ['#%02x%02x%02x' % color for color in palette]
+        return hex_colors
+    except Exception as e:
+        print(f"Error extracting colors: {e}")
+        return []
 
 def copy_to_clipboard(color):
     """Copies the color code to clipboard and shows a confirmation."""
@@ -23,31 +27,41 @@ def copy_to_clipboard(color):
 
 def on_upload(file):
     """Handles image upload and extracts colors."""
-    if file.content:
-        colors = extract_colors(file.content.read())
-
-        with result_container:
-            result_container.clear()  # Clear previous results
-            ui.label("Picked palettes").classes("text-md font-semibold text-[#1995AD]")
+    if file:
+        try:
+            # Read the file content
+            content = file.content.read()
             
-            with ui.row().classes("mt-2"):
-                for hex_color in colors:
-                    with ui.card().style(
-                        f"""
-                        background-color: {hex_color}; 
-                        width: 50px; 
-                        height: 50px; 
-                        border-radius: 8px;
-                        cursor: pointer;
-                        transition: transform 0.2s ease;
-                        """
-                    ).classes('color-card').on('click', lambda c=hex_color: copy_to_clipboard(c)):
-                        ui.tooltip(f'Click to copy {hex_color}')
-            
-            # Display uploaded image
+            # Show image preview
             with image_container:
                 image_container.clear()
-                ui.image(file.content).classes("w-full rounded-lg mt-4")
+                # Convert bytes to base64 for image display
+                image_data = base64.b64encode(content).decode()
+                ui.image(f'data:image/jpeg;base64,{image_data}').classes('w-full rounded-lg mt-4')
+            
+            # Create new BytesIO for color extraction
+            img_bytes = io.BytesIO(content)
+            colors = extract_colors(img_bytes)
+
+            with result_container:
+                result_container.clear()
+                ui.label("Picked palettes").classes("text-md font-semibold text-[#1995AD]")
+                
+                with ui.row().classes("mt-2"):
+                    for hex_color in colors:
+                        with ui.card().style(
+                            f"""
+                            background-color: {hex_color}; 
+                            width: 50px; 
+                            height: 50px; 
+                            border-radius: 8px;
+                            cursor: pointer;
+                            transition: transform 0.2s ease;
+                            """
+                        ).classes('color-card').on('click', lambda c=hex_color: copy_to_clipboard(c)):
+                            ui.tooltip(f'Click to copy {hex_color}')
+        except Exception as e:
+            ui.notify(f'Error processing image: {str(e)}', type='negative')
 
 # 🎨 UI Setup with Paper Style
 ui.html('''
@@ -160,7 +174,7 @@ with ui.column().classes('w-full items-center gap-4 p-8'):
     
     with ui.card().classes('w-full max-w-2xl p-6'):
         with ui.column().classes('w-full items-center gap-4'):
-            # Modified upload container
+            # Upload container
             with ui.element('div').classes('upload-container w-full'):
                 with ui.element('label').classes('w-full h-full cursor-pointer flex flex-col items-center justify-center'):
                     ui.icon('upload').classes('upload-icon')
@@ -171,8 +185,10 @@ with ui.column().classes('w-full items-center gap-4 p-8'):
                         auto_upload=True,
                     ).props('flat bordered hide-upload-btn accept="image/*"').classes('absolute inset-0 opacity-0')
             
-            result_container = ui.column().classes('w-full items-center gap-4')
+            # Image preview container
             image_container = ui.column().classes('w-full items-center')
+            # Color results container
+            result_container = ui.column().classes('w-full items-center gap-4')
 
 try:
     ui.run(port=PORT)
